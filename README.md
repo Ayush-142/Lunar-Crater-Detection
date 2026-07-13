@@ -1,15 +1,11 @@
 # Lunar Crater Detection (YOLOv11 + ResNet101)
 
-A reproducibility writeup for a lunar crater detection pipeline built on
-**YOLOv11** with its default backbone swapped for a **timm ResNet101**,
-trained on two Chandrayaan-2 datasets (OHRC and TMC-2).
+A lunar crater detection pipeline built on **YOLOv11** with its default
+backbone swapped for a **timm ResNet101**, trained on two Chandrayaan-2
+datasets (OHRC and TMC-2).
 
-This repo replicates and documents the project originally published at
-[arbabcodess/Lunar-Crater-Detection](https://github.com/arbabcodess/Lunar-Crater-Detection).
-All credit for the original idea, dataset annotation, and model design goes
-to that repo. This copy exists as a portfolio / assignment submission —
-the actual training runs on Google Colab (GPU required); this repo holds the
-notebooks, config, and documentation needed to reproduce those runs.
+Training runs on Google Colab (GPU required); this repo holds the notebooks,
+config, and documentation needed to reproduce those runs.
 
 > **Note:** No training is run from this repo. The notebooks in
 > [`notebooks/`](notebooks/) are meant to be opened in Google Colab.
@@ -185,28 +181,26 @@ count differ.
 
 ## Results
 
-Not yet trained in this copy of the repo — the tables below are placeholders
-to fill in after running the notebooks above. For reference, the metrics
-reported by the original project are noted alongside as a sanity target, not
-as this repo's results.
+Not yet trained — the tables below are placeholders to fill in after running
+the notebooks above.
 
 ### OHRC
 
-| Metric | This run | Original repo |
-|---|---|---|
-| Precision | _TBD_ | 74.6% |
-| Recall | _TBD_ | 66.8% |
-| mAP@0.50 | _TBD_ | 66.7% |
-| mAP@0.50:0.95 | _TBD_ | 32.4% |
+| Metric | Result |
+|---|---|
+| Precision | _TBD_ |
+| Recall | _TBD_ |
+| mAP@0.50 | _TBD_ |
+| mAP@0.50:0.95 | _TBD_ |
 
 ### TMC-2
 
-| Metric | This run | Original repo |
-|---|---|---|
-| Precision | _TBD_ | 80.9% |
-| Recall | _TBD_ | 51.9% |
-| mAP@0.50 | _TBD_ | 58.7% |
-| mAP@0.50:0.95 | _TBD_ | 33.7% |
+| Metric | Result |
+|---|---|
+| Precision | _TBD_ |
+| Recall | _TBD_ |
+| mAP@0.50 | _TBD_ |
+| mAP@0.50:0.95 | _TBD_ |
 
 ### Training curves & sample predictions
 
@@ -215,10 +209,8 @@ images to [`results/`](results/) after training, and link them here._
 
 ## Credits & License
 
-Original project, dataset annotation, and model design:
-[arbabcodess/Lunar-Crater-Detection](https://github.com/arbabcodess/Lunar-Crater-Detection).
 Imagery courtesy of ISRO's Chandrayaan-2 mission (OHRC and TMC-2 instruments).
 Timm backbone support in Ultralytics via
 [PR #19609](https://github.com/ultralytics/ultralytics/pull/19609).
 
-This project is released under the MIT License, matching the original repo.
+This project is released under the MIT License.
