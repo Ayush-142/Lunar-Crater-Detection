@@ -1,0 +1,8 @@
+# NOTE: the Timm/Index backbone modules used by configs/yolo11.yaml are not in
+# a released ultralytics version yet. You must check out PR #19609 and install
+# from source instead of `pip install ultralytics` — see README.md for steps.
+# https://github.com/ultralytics/ultralytics/pull/19609
+ultralytics
+roboflow
+timm
+torch
