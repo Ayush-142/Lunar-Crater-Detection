@@ -324,7 +324,7 @@ anyone rerunning it:
 
 ## Demo
 
-🚀 **Live demo:** [Hugging Face Space link — coming soon]
+🚀 **Live demo:** [[Hugging Face Space link — coming soon]](https://lunar-crater-detection.streamlit.app/)
 
 Planned: a small Gradio app — upload a lunar tile, adjust the confidence
 threshold, and see detections drawn with approximate real-world crater
