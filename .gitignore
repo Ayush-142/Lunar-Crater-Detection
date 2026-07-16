@@ -22,6 +22,7 @@ vendor/
 datasets/
 runs/
 *.pt
+*.pt.bak
 *.pth
 *.onnx
 *.onnx.data
