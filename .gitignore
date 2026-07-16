@@ -15,11 +15,16 @@ venv/
 env/
 ENV/
 
+# Vendored/patched package clones (e.g. ultralytics PR builds)
+vendor/
+
 # Datasets and training artifacts
 datasets/
 runs/
 *.pt
 *.pth
+*.onnx
+*.onnx.data
 
 # Jupyter
 .ipynb_checkpoints/

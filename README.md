@@ -181,31 +181,124 @@ count differ.
 
 ## Results
 
-Not yet trained — the tables below are placeholders to fill in after running
-the notebooks above.
+**Training setup:** all runs below were done on Kaggle (Tesla T4, 15GB),
+using the Ultralytics PR #19609 branch (timm backbone support), with
+`imgsz=640` and `batch=8`.
 
-### OHRC
+- **Custom model:** YOLOv11 with an ImageNet-pretrained ResNet101 backbone —
+  **94.07M parameters**, 233.1 GFLOPs.
+- **Baseline:** stock YOLOv11n — **2.58M parameters**.
 
-| Metric | Result |
-|---|---|
-| Precision | _TBD_ |
-| Recall | _TBD_ |
-| mAP@0.50 | _TBD_ |
-| mAP@0.50:0.95 | _TBD_ |
+Both are evaluated on their own validation split: TMC-2 (213 images / 2325
+instances) and OHRC (92 images / 2946 instances).
 
-### TMC-2
+| Model | Sensor | Epochs | mAP50 | mAP50-95 | Precision | Recall |
+|---|---|---|---|---|---|---|
+| YOLOv11n (baseline) | TMC-2 | 150 | 0.327 | 0.131 | 0.462 | 0.349 |
+| YOLOv11n (baseline) | OHRC | 300 | 0.303 | 0.092 | 0.404 | 0.336 |
+| YOLOv11+ResNet101 | TMC-2 | 150 | 0.589 | 0.343 | 0.798 | 0.528 |
+| YOLOv11+ResNet101 | OHRC | 300 | 0.683 | 0.355 | 0.781 | 0.683 |
+<!-- TODO ablation run: | YOLOv11+ResNet50 | TMC-2 | 150 | TBD | TBD | TBD | TBD | -->
 
-| Metric | Result |
-|---|---|
-| Precision | _TBD_ |
-| Recall | _TBD_ |
-| mAP@0.50 | _TBD_ |
-| mAP@0.50:0.95 | _TBD_ |
+**Comparison to the reference implementation:** the reference reports mAP50
+of 0.587 (TMC-2) and 0.667 (OHRC). My TMC-2 run (0.589) reproduces that
+almost exactly, and my OHRC run (0.683) slightly exceeds it.
+
+**Key observations:**
+- Swapping in the ResNet101 backbone nearly doubles mAP50 over the stock
+  nano baseline on both sensors — but it costs 36x the parameters and
+  roughly 5x the GPU inference time (1.9–3.3 ms → 10.2–15.3 ms per image on
+  a T4).
+- OHRC (~0.25 m/px) outperforms TMC-2 (~5 m/px) across every metric. The
+  recall gap (0.683 vs 0.528) suggests the main failure mode on TMC-2 is
+  missing small craters that get lost at coarser ground resolution, rather
+  than false positives.
+- On TMC-2 specifically, precision (0.798) is much higher than recall
+  (0.528): the model rarely calls a crater where there isn't one, but it
+  misses a fair number of real ones. Lowering the confidence threshold at
+  inference time would trade some of that precision back for recall.
 
 ### Training curves & sample predictions
 
 _Add `results.png`, `confusion_matrix.png`, and a few annotated prediction
-images to [`results/`](results/) after training, and link them here._
+images (from the Kaggle run output) to [`results/`](results/), and link
+them here._
+
+## CPU Inference Benchmark
+
+Separate from the accuracy numbers above, I also benchmarked CPU-only
+inference latency for both trained checkpoints, to see how they'd behave
+without a GPU (e.g. for a lightweight demo or edge deployment).
+
+**Setup:** AMD Ryzen 5 7530U (6 physical / 12 logical cores), `imgsz=640`,
+20 timed runs after 3 warmup runs. ONNX Runtime sessions were tuned and
+verified with `intra_op_num_threads=6`, `inter_op_num_threads=1`,
+`ORT_ENABLE_ALL` (Ultralytics' own ONNX backend doesn't expose session
+options, so this benchmark patches session construction to confirm the
+tuned settings are actually applied rather than assuming it). See
+[`benchmark.py`](benchmark.py).
+
+| Variant | TMC-2 mean ms | OHRC mean ms | Speedup vs PyTorch |
+|---|---|---|---|
+| PyTorch CPU (FP32) | 1062 | 1352 | 1.00x |
+| ONNX Runtime FP32 (tuned) | 1464 | 1577 | 0.73–0.86x |
+| ONNX Runtime INT8 (dynamic) | 21235 | 21355 | 0.05–0.06x |
+
+**Findings:**
+- ONNX Runtime FP32 came out *slower* than plain PyTorch CPU, even with a
+  tuned session. For a 94M-parameter, Conv-heavy backbone, PyTorch's own
+  CPU kernels already perform well, and ONNX Runtime's CPU execution
+  provider didn't beat them here.
+- Dynamic INT8 quantization was 15–20x *slower*, not faster, and noticeably
+  less accurate (detection counts on the eval set dropped 19–74% versus
+  PyTorch). Reason: ONNX Runtime's dynamic quantization only ships fast
+  INT8 kernels for MatMul-family ops (the kind that dominate transformers).
+  This model is almost entirely Conv layers (the ResNet101 backbone), so
+  those fall back to a slow dequantize-then-compute path instead of a real
+  INT8 kernel — and dynamic quantization's uncalibrated, on-the-fly
+  activation ranges hurt accuracy more on a deep conv net than they would
+  on the op types it's actually designed for.
+- File sizes shrink a lot even though speed doesn't: TMC-2's checkpoint
+  goes from 180MB (`.pt`) → 359MB (ONNX FP32) → 90MB (INT8).
+- The standard fix for this failure mode is **static, calibrated
+  quantization** (QDQ format with a calibration dataset), which gives ONNX
+  Runtime real per-tensor activation ranges instead of guessing them
+  per-batch, and generally handles Conv-heavy nets much better than dynamic
+  quantization. Deprioritized for now, but the obvious next step if CPU
+  deployment becomes a priority.
+
+## Reproducibility notes
+
+Two mistakes I actually hit while setting this up — worth flagging for
+anyone rerunning it:
+
+1. **Silent fallback to stock nano scale.** If `configs/yolo11.yaml` isn't
+   copied into `ultralytics/ultralytics/cfg/models/11/yolo11.yaml` *before*
+   the model is built, Ultralytics doesn't error out — it silently falls
+   back to its own built-in stock config at nano scale, only printing
+   `WARNING ⚠️ no model scale passed. Assuming scale='n'.` Miss that
+   warning and you can burn an entire training run on the wrong
+   ~2.6M-parameter stock model instead of the ~94M-parameter ResNet101 one.
+   **Always check the parameter count right after `YOLO(...)` and before
+   calling `.train()`** — it should be ~94M, not ~2.6M.
+2. **Import shadowing from the cloned PR branch.** Never run
+   training/inference scripts from a working directory that also contains
+   the cloned `ultralytics` repo folder itself. Python resolves
+   `import ultralytics` against that local folder before the installed
+   package, so you'll either get a confusing
+   `cannot import name 'YOLO' from 'ultralytics' (unknown location)` error,
+   or silently load the wrong copy. Either `cd` into the clone before
+   installing/using it, or keep it in a subfolder (e.g.
+   `vendor/ultralytics`) that isn't itself on the working directory's
+   import path.
+
+## Demo
+
+🚀 **Live demo:** [Hugging Face Space link — coming soon]
+
+Planned: a small Gradio app — upload a lunar tile, adjust the confidence
+threshold, and see detections drawn with approximate real-world crater
+diameters (computed from the sensor's known ground resolution).
 
 ## Credits & License
 
