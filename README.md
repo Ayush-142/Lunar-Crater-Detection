@@ -218,11 +218,41 @@ almost exactly, and my OHRC run (0.683) slightly exceeds it.
   misses a fair number of real ones. Lowering the confidence threshold at
   inference time would trade some of that precision back for recall.
 
-### Training curves & sample predictions
+### Training curves
 
-_Add `results.png`, `confusion_matrix.png`, and a few annotated prediction
-images (from the Kaggle run output) to [`results/`](results/), and link
-them here._
+| TMC-2 (150 epochs) | OHRC (300 epochs) |
+|---|---|
+| <img src="results/tmc2_results/results.png" width="49%"> | <img src="results/ohrc_results/results.png" width="49%"> |
+| TMC-2: mAP50 0.589 after 150 epochs | OHRC: mAP50 0.683 after 300 epochs |
+
+### Confusion matrices
+
+| TMC-2 (150 epochs) | OHRC (300 epochs) |
+|---|---|
+| <img src="results/tmc2_results/confusion_matrix_normalized.png" width="49%"> | <img src="results/ohrc_results/confusion_matrix_normalized.png" width="49%"> |
+| TMC-2: normalized confusion matrix | OHRC: normalized confusion matrix |
+
+### Sample predictions — ground truth vs model
+
+| Ground truth | Prediction |
+|---|---|
+| <img src="results/tmc2_results/val_batch0_labels.jpg" width="49%"> | <img src="results/tmc2_results/val_batch0_pred.jpg" width="49%"> |
+| TMC-2 validation batch 0 — ground truth | TMC-2 validation batch 0 — prediction |
+
+| Ground truth | Prediction |
+|---|---|
+| <img src="results/ohrc_results/val_batch0_labels.jpg" width="49%"> | <img src="results/ohrc_results/val_batch0_pred.jpg" width="49%"> |
+| OHRC validation batch 0 — ground truth | OHRC validation batch 0 — prediction |
+
+More examples:
+[TMC-2 batch 1 labels](results/tmc2_results/val_batch1_labels.jpg) ·
+[TMC-2 batch 1 pred](results/tmc2_results/val_batch1_pred.jpg) ·
+[TMC-2 batch 2 labels](results/tmc2_results/val_batch2_labels.jpg) ·
+[TMC-2 batch 2 pred](results/tmc2_results/val_batch2_pred.jpg) ·
+[OHRC batch 1 labels](results/ohrc_results/val_batch1_labels.jpg) ·
+[OHRC batch 1 pred](results/ohrc_results/val_batch1_pred.jpg) ·
+[OHRC batch 2 labels](results/ohrc_results/val_batch2_labels.jpg) ·
+[OHRC batch 2 pred](results/ohrc_results/val_batch2_pred.jpg)
 
 ## CPU Inference Benchmark
 
