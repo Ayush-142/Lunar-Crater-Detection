@@ -1,0 +1,14 @@
+# Patched Ultralytics with Timm-backbone support (PR #19609).
+# Required: best.pt contains a Timm module that stock ultralytics can't load.
+git+https://github.com/ultralytics/ultralytics.git@refs/pull/19609/head
+
+# CPU-only torch wheel (Streamlit Community Cloud has no GPU; the default
+# PyPI wheel is much larger and pulls in CUDA deps we don't need).
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+
+timm
+streamlit
+huggingface_hub
+pillow
+opencv-python-headless
