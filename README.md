@@ -200,10 +200,6 @@ instances) and OHRC (92 images / 2946 instances).
 | YOLOv11+ResNet101 | OHRC | 300 | 0.683 | 0.355 | 0.781 | 0.683 |
 <!-- TODO ablation run: | YOLOv11+ResNet50 | TMC-2 | 150 | TBD | TBD | TBD | TBD | -->
 
-**Comparison to the reference implementation:** the reference reports mAP50
-of 0.587 (TMC-2) and 0.667 (OHRC). My TMC-2 run (0.589) reproduces that
-almost exactly, and my OHRC run (0.683) slightly exceeds it.
-
 **Key observations:**
 - Swapping in the ResNet101 backbone nearly doubles mAP50 over the stock
   nano baseline on both sensors — but it costs 36x the parameters and
